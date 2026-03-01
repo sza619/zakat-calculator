@@ -1,41 +1,47 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Calendar } from 'lucide-react';
-import { CurrencySelector } from '@/components/currency-selector';
-import { CalculatorInput } from '@/components/calculator-input';
-import { ZakatResultDisplay } from '@/components/zakat-result';
-import { EducationalContent } from '@/components/educational-content';
-import { FaqSection } from '@/components/faq-section';
+import { useState, useEffect, useMemo } from "react";
+import { Sparkles, Calendar } from "lucide-react";
+import { CurrencySelector } from "@/components/currency-selector";
+import { CalculatorInput } from "@/components/calculator-input";
+import { ZakatResultDisplay } from "@/components/zakat-result";
+import { EducationalContent } from "@/components/educational-content";
+import { FaqSection } from "@/components/faq-section";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CURRENCIES, NISAB_GRAMS } from '@/lib/constants';
-import { Currency, ZakatInputs, NisabType, GoldSilverPrices } from '@/lib/types';
-import { calculateZakat, calculateNisabAmount } from '@/lib/zakat-calculations';
-import { fetchGoldSilverPrices } from '@/lib/gold-silver-api';
-import { formatCurrency } from '@/lib/currency-utils';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CURRENCIES, NISAB_GRAMS } from "@/lib/constants";
+import {
+  Currency,
+  ZakatInputs,
+  NisabType,
+  GoldSilverPrices,
+} from "@/lib/types";
+import { calculateZakat, calculateNisabAmount } from "@/lib/zakat-calculations";
+import { fetchGoldSilverPrices } from "@/lib/gold-silver-api";
+import { formatCurrency } from "@/lib/currency-utils";
 import {
   getTodayHijri,
   formatHijriDate,
   addHijriYear,
   gregorianToHijri,
-} from '@/lib/hijri-date';
+  formatGregorianDate,
+} from "@/lib/hijri-date";
 
 export default function Home() {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(
-    CURRENCIES[0]
+    CURRENCIES[0],
   );
-  const [nisabType, setNisabType] = useState<NisabType>('silver');
+  const [nisabType, setNisabType] = useState<NisabType>("silver");
   const [prices, setPrices] = useState<GoldSilverPrices | null>(null);
   const [loading, setLoading] = useState(true);
-  const [nisabDate, setNisabDate] = useState<string>('');
+  const [nisabDate, setNisabDate] = useState<string>("");
 
   const [inputs, setInputs] = useState<ZakatInputs>({
     goldSilver: 0,
@@ -65,7 +71,7 @@ export default function Home() {
     return calculateNisabAmount(
       nisabType,
       prices.goldPerGram,
-      prices.silverPerGram
+      prices.silverPerGram,
     );
   }, [nisabType, prices]);
 
@@ -75,7 +81,10 @@ export default function Home() {
 
   const todayHijri = getTodayHijri();
   const nextZakatDate = nisabDate
-    ? addHijriYear(gregorianToHijri(new Date(nisabDate)))
+    ? addHijriYear(gregorianToHijri(new Date(nisabDate)))?.nextHijri
+    : null;
+  const nextZakatGregorian = nisabDate
+    ? addHijriYear(gregorianToHijri(new Date(nisabDate)))?.nextGregorian
     : null;
 
   return (
@@ -188,27 +197,28 @@ export default function Home() {
                 {!loading && prices && (
                   <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-4 mb-6 border border-emerald-200">
                     <p className="text-sm font-medium text-gray-700">
-                      {nisabType === 'gold' ? (
+                      {nisabType === "gold" ? (
                         <>
-                          As per current Gold Nisab ({NISAB_GRAMS.gold}g) ≈{' '}
+                          As per current Gold Nisab ({NISAB_GRAMS.gold}g) ≈{" "}
                           <span className="font-bold text-emerald-700">
                             {formatCurrency(nisabAmount, selectedCurrency)}
                           </span>
                         </>
                       ) : (
                         <>
-                          As per current Silver Nisab ({NISAB_GRAMS.silver}g) ≈{' '}
+                          As per current Silver Nisab ({NISAB_GRAMS.silver}g) ≈{" "}
                           <span className="font-bold text-emerald-700">
                             {formatCurrency(nisabAmount, selectedCurrency)}
                           </span>
                         </>
                       )}
                     </p>
-                    {nextZakatDate && (
+                    {nextZakatDate && nextZakatGregorian && (
                       <p className="text-xs text-gray-600 mt-2">
-                        Your next Zakat due date is approximately:{' '}
+                        Your next Zakat due date is approximately:{" "}
                         <span className="font-semibold">
-                          {formatHijriDate(nextZakatDate)}
+                          {formatHijriDate(nextZakatDate)} (
+                          {formatGregorianDate(nextZakatGregorian)})
                         </span>
                       </p>
                     )}
@@ -220,35 +230,35 @@ export default function Home() {
                 <CalculatorInput
                   label="Value of Gold & Silver you have"
                   value={inputs.goldSilver}
-                  onChange={(val) => updateInput('goldSilver', val)}
+                  onChange={(val) => updateInput("goldSilver", val)}
                   currencySymbol={selectedCurrency.symbol}
                 />
 
                 <CalculatorInput
                   label="Cash at Home"
                   value={inputs.cashHome}
-                  onChange={(val) => updateInput('cashHome', val)}
+                  onChange={(val) => updateInput("cashHome", val)}
                   currencySymbol={selectedCurrency.symbol}
                 />
 
                 <CalculatorInput
                   label="Cash at Bank Account"
                   value={inputs.cashBank}
-                  onChange={(val) => updateInput('cashBank', val)}
+                  onChange={(val) => updateInput("cashBank", val)}
                   currencySymbol={selectedCurrency.symbol}
                 />
 
                 <CalculatorInput
                   label="Investments & Shares"
                   value={inputs.investments}
-                  onChange={(val) => updateInput('investments', val)}
+                  onChange={(val) => updateInput("investments", val)}
                   currencySymbol={selectedCurrency.symbol}
                 />
 
                 <CalculatorInput
                   label="Business Goods & Trade Inventory"
                   value={inputs.businessGoods}
-                  onChange={(val) => updateInput('businessGoods', val)}
+                  onChange={(val) => updateInput("businessGoods", val)}
                   currencySymbol={selectedCurrency.symbol}
                 />
 
@@ -256,7 +266,7 @@ export default function Home() {
                   <CalculatorInput
                     label="Liabilities (Loans & Immediate Debts)"
                     value={inputs.liabilities}
-                    onChange={(val) => updateInput('liabilities', val)}
+                    onChange={(val) => updateInput("liabilities", val)}
                     currencySymbol={selectedCurrency.symbol}
                   />
                 </div>
